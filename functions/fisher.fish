@@ -209,7 +209,9 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 string replace --regex -- $HOME \~ $commit_plugins >$fish_plugins
             else
                 set --erase _fisher_plugins
-                command rm -f $fish_plugins
+		if test "$cmd" = remove
+		    command rm -f $fish_plugins
+		end
             end
 
             set --local total (count $install_plugins) (count $update_plugins) (count $remove_plugins)
