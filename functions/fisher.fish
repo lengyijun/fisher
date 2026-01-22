@@ -26,16 +26,19 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             # Handle uninstall as an alias for remove
             test "$cmd" = uninstall && set cmd remove
 
+            set -l options f/force 
+            argparse -i $options -- $argv[2..-1]
+
             set --local install_plugins
             set --local update_plugins
             set --local remove_plugins
-            set --local arg_plugins $argv[2..-1]
+            set --local arg_plugins $argv
             set --local old_plugins $_fisher_plugins
             set --local new_plugins
 
             test -e $fish_plugins && set --local file_plugins (string match --regex -- '^[^\s]+$' <$fish_plugins | string replace -- \~ ~)
 
-            if ! set --query argv[2]
+            if ! set --query argv[1]
                 if test "$cmd" != update
                     echo "fisher: Not enough arguments for command: \"$cmd\"" >&2 && return 1
                 else if ! set --query file_plugins
@@ -51,7 +54,7 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 contains -- "$plugin" $new_plugins || set --append new_plugins $plugin
             end
 
-            if set --query argv[2]
+            if set --query argv[1]
                 for plugin in $new_plugins
                     if contains -- "$plugin" $old_plugins
                         test "$cmd" = remove &&
@@ -179,8 +182,16 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                     end
 
                     if set --query conflict_files[1] && set --erase install_plugins[$index]
-                        echo -s "fisher: Cannot install \"$plugin\": please remove or move conflicting files first:" \n"        "$conflict_files >&2
-                        continue
+                        if set -q _flag_force
+                            # remove conflicting files when --force is set
+                            echo "fisher: --force enabled, removing conflicting files for \"$plugin\"" >&2
+                            for f in $conflict_files
+                                command rm -rf $f
+                            end
+                        else
+                            echo -s "fisher: Cannot install \"$plugin\": please remove or move conflicting files first:" \n"        "$conflict_files >&2
+                            continue
+                        end
                     end
                 end
 
