@@ -228,6 +228,7 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                     if contains -- (string lower -- $plugin) (string lower -- $_fisher_plugins) 
                         set --append commit_plugins $plugin
                     else
+                        set --append commit_plugins $plugin
                         set --append need_reinstall_plugins $plugin
                     end
                 end
@@ -239,7 +240,6 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 string replace --regex -- $HOME \~ $commit_plugins >$fish_plugins
             else
                 set --erase _fisher_plugins
-                command rm -f $fish_plugins
             end
 
             if set --query need_reinstall_plugins[1]
