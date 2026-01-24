@@ -1,4 +1,29 @@
-# Fisher
+# Better Fisher
+
+## Compare to https://github.com/jorgebucaran/fisher
+- `fisher install --overwrite`
+  - Overwrite local files
+  - Dangerous!
+- `fisher update --overwrite`
+  - Overwrite local files
+  - Dangerous!
+- Never delete any line from `~/.config/fish/fish_plugins`
+  - Do nothing strange !
+- list files from certain plugin
+  - `fisher list lengyijun/fisher`
+- list tracked files
+  - `fisher list (fisher list)`
+- list untracked files
+  - `fisher ls-untracked-files`
+- completion for `fisher list`
+- Better ci
+
+## Installation
+
+```console
+curl -sL https://raw.githubusercontent.com/lengyijun/fisher/fishest/functions/fisher.fish | source && fisher uninstall jorgebucaran/fisher; fisher install lengyijun/fisher --overwrite
+```
+-----
 
 > A plugin manager for [Fish](https://fishshell.com)—your friendly interactive shell. [Snag fresh plugins!](https://github.com/jorgebucaran/awsm.fish#readme)
 
@@ -6,16 +31,6 @@ Take control of functions, completions, bindings, and snippets from the command 
 
 - Fisher is 100% pure-Fish, making it easy to contribute or modify
 - Scorching fast concurrent plugin downloads that'll make you question reality
-- Zero configuration needed—we're not kidding!
-- Oh My Fish! plugins supported too
-
-> #### ☝️ [Upgrading from Fisher `3.x` or older? Strap in and read this!](https://github.com/jorgebucaran/fisher/issues/652)
-
-## Installation
-
-```console
-curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-```
 
 ## Quickstart
 
@@ -26,7 +41,7 @@ Fisher lets you install, update, and remove plugins like a boss. Revel in Fish's
 To install plugins, use the `install` command and point it to the GitHub repository.
 
 ```console
-fisher install jorgebucaran/nvm.fish
+fisher install kfkonrad/last-working-dir-fish-pkg
 ```
 
 > Wanna install from GitLab? No problemo—just prepend `gitlab.com/` to the plugin path.
@@ -51,17 +66,28 @@ Use the `list` command to see all your shiny installed plugins.
 
 ```console
 $ fisher list
-jorgebucaran/fisher
-ilancosman/tide@v5
-jorgebucaran/nvm.fish
+lengyijun/fisher
+ilancosman/tide@v6
+kfkonrad/last-working-dir-fish-pkg
 /home/jb/path/to/plugin
 ```
 
-The `list` command also plays nice with regular expressions for filtering the output.
+`fisher list <plugin>` list files provided by the plugin:
 
 ```console
-$ fisher list \^/
-/home/jb/path/to/plugin
+$ fisher list lengyijun/fisher
+~/.config/fish/functions/fisher.fish
+~/.config/fish/completions/fisher.fish
+```
+
+### List files tracked by fisher
+```console
+fisher list (fisher list)
+```
+
+### List files not tracked by fisher
+```console
+fisher ls-untracked-files
 ```
 
 ### Updating plugins
@@ -69,7 +95,7 @@ $ fisher list \^/
 `update` command to the rescue! It updates one or more plugins to their latest and greatest version.
 
 ```console
-fisher update jorgebucaran/fisher
+fisher update lengyijun/fisher
 ```
 
 > Just type `fisher update` to update everything in one fell swoop.
@@ -79,7 +105,7 @@ fisher update jorgebucaran/fisher
 Say goodbye to installed plugins with the `remove` command.
 
 ```console
-fisher remove jorgebucaran/nvm.fish
+fisher remove kfkonrad/last-working-dir-fish-pkg
 ```
 
 Feeling destructive? Wipe out everything, including Fisher itself.
@@ -90,7 +116,11 @@ fisher list | fisher remove
 
 ## Using your `fish_plugins` file
 
-Whenever you install or remove a plugin from the command line, Fisher jots down all the installed plugins in `$__fish_config_dir/fish_plugins`. Add this file to your dotfiles or version control to easily share your configuration across different systems.
+The main usage of `fish_plugins` is to be tracked in your dotfiles manages(e.g. chezmoi) or version control.
+
+Although we support following editing, we strongly recommand you to use `fisher install`/`fisher remove` to manage plugins.
+
+Whenever you install or remove a plugin from the command line, Fisher jots down all the installed plugins in `$__fish_config_dir/fish_plugins`. 
 
 You can also edit this file and run `fisher update` to commit changes like a pro:
 
@@ -99,9 +129,9 @@ $EDITOR $__fish_config_dir/fish_plugins
 ```
 
 ```diff
-jorgebucaran/fisher
-ilancosman/tide@v5
-jorgebucaran/nvm.fish
+lengyijun/fisher
+ilancosman/tide@v6
+kfkonrad/last-working-dir-fish-pkg
 + PatrickF1/fzf.fish
 - /home/jb/path/to/plugin
 ```
@@ -184,9 +214,15 @@ Want to use theme plugins and maintain your own local themes? You can do that to
 
 While Fisher doesn't rely on a central plugin repository, discovering new plugins doesn't have to feel like navigating uncharted waters. To boost your plugin's visibility and make it easier for users to find, [add relevant topics to your repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics#adding-topics-to-your-repository) using [`fish-plugin`](https://github.com/topics/fish-plugin). By doing so, you're not only contributing to the Fisher community but also enabling users to explore new plugins and enhance their Fish shell experience. Don't let plugin discovery be a fishy business, tag your plugins today!
 
+See also https://github.com/lengyijun/awsm.fish
+
 ## Acknowledgments
 
 Fisher started its journey in 2016 by [@jorgebucaran](https://github.com/jorgebucaran) as a shell configuration manager for Fish. Along the way, many helped shape it into what it is today. [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish) paved the way as the first popular Fish framework. [@jethrokuan](https://github.com/jethrokuan) provided crucial support during the early years. [@PatrickF1](https://github.com/PatrickF1)'s candid feedback proved invaluable time and again. Bootstrapping Fisher was originally [@IlanCosman](https://github.com/IlanCosman)'s brilliant idea. Thank you to all our contributors! <3
+
+Because [@jorgebucaran](https://github.com/jorgebucaran) refuse to solve https://github.com/jorgebucaran/fisher/issues/790  and many other issues,
+[@jorgebucaran](https://github.com/jorgebucaran) neglects real-world issues.
+[@lengyijun](https://github.com/lengyijun) forked and fixed them.
 
 ## License
 
