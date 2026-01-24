@@ -7,14 +7,14 @@ Take control of functions, completions, bindings, and snippets from the command 
 - Fisher is 100% pure-Fish, making it easy to contribute or modify
 - Scorching fast concurrent plugin downloads that'll make you question reality
 - Zero configuration needed—we're not kidding!
-- Oh My Fish! plugins supported too
+- Never delete any line from `~/.config/fish/fish_plugins`
 
 > #### ☝️ [Upgrading from Fisher `3.x` or older? Strap in and read this!](https://github.com/jorgebucaran/fisher/issues/652)
 
 ## Installation
 
 ```console
-curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+curl -sL https://raw.githubusercontent.com/lengyijun/fisher/new/functions/fisher.fish | source && fisher uninstall jorgebucaran/fisher; fisher install lengyijun/fisher
 ```
 
 ## Quickstart
