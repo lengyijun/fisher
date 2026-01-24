@@ -168,8 +168,12 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                     set --local user_files $fisher_path/{functions,themes,conf.d,completions}/*
                     set --local conflict_files
 
-                    for file in (string replace -- $source/ $fisher_path/ $files)
-                        contains -- $file $user_files && set --append conflict_files $file
+                    for new_file in $files
+                        set --local current_file (string replace -- $source/ $fisher_path/ $new_file)
+                        if cmp -s $new_file $current_file
+                        else
+                            set --append conflict_files $current_file
+                        end
                     end
 
                     if set --query conflict_files[1] && set --erase install_plugins[$index]
