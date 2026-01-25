@@ -20,11 +20,93 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             echo "       \$fisher_path  Plugin installation path. Default: $__fish_config_dir" | string replace --regex -- $HOME \~
         case ls list
             string match --entire --regex -- "$argv[2]" $_fisher_plugins
-        case install update remove uninstall
+        case remove uninstall
             isatty || read --local --null --array stdin && set --append argv $stdin
 
-            # Handle uninstall as an alias for remove
-            test "$cmd" = uninstall && set cmd remove
+            set --local remove_plugins
+            set --local arg_plugins $argv[2..-1]
+            set --local old_plugins $_fisher_plugins
+            set --local new_plugins
+
+            test -e $fish_plugins && set --local file_plugins (string match --regex -- '^[^\s]+$' <$fish_plugins | string replace -- \~ ~)
+
+            if ! set --query argv[2]
+                echo "fisher: Not enough arguments for command: \"$cmd\"" >&2 && return 1
+            end
+
+            for plugin in $arg_plugins
+                set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+                contains -- "$plugin" $new_plugins || set --append new_plugins $plugin
+            end
+
+            for plugin in $new_plugins
+                if contains -- "$plugin" $old_plugins
+                    set --append remove_plugins $plugin 
+                else
+                    echo "fisher: Plugin not installed: \"$plugin\"" >&2 && return 1
+                end
+            end
+
+            set --local source_plugins
+            set --local fish_path (status fish-path)
+
+            echo (set_color --bold)fisher $cmd version $fisher_version(set_color normal)
+
+            for plugin in $remove_plugins
+                if set --local index (contains --index -- "$plugin" $_fisher_plugins)
+                    set --local plugin_files_var _fisher_(string escape --style=var -- $plugin)_files
+
+                    if contains -- "$plugin" $remove_plugins
+                        for name in (string replace --filter --regex -- '.+/conf\.d/([^/]+)\.fish$' '$1' $$plugin_files_var)
+                            emit {$name}_uninstall
+                        end
+                        printf "%s\n" Removing\ (set_color red --bold)$plugin(set_color normal) "         "$$plugin_files_var | string replace -- \~ ~
+                        set --erase _fisher_plugins[$index]
+                    end
+
+                    command rm -rf (string replace -- \~ ~ $$plugin_files_var)
+
+                    functions --erase (string replace --filter --regex -- '.+/functions/([^/]+)\.fish$' '$1' $$plugin_files_var)
+
+                    for name in (string replace --filter --regex -- '.+/completions/([^/]+)\.fish$' '$1' $$plugin_files_var)
+                        complete --erase --command $name
+                    end
+
+                    set --erase $plugin_files_var
+                end
+            end
+
+            command rm -rf $source_plugins
+
+            set --local commit_plugins
+
+            for plugin in $file_plugins
+                set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+                if contains -- $plugin $remove_plugins
+                else
+                    set --append commit_plugins $plugin
+                end
+            end
+            for plugin in $_fisher_plugins
+                contains -- (string lower -- $plugin) (string lower -- $commit_plugins) || set --append commit_plugins $plugin
+            end
+
+            string replace --regex -- $HOME \~ $commit_plugins >$fish_plugins
+
+            if set --query _fisher_plugins[1]
+            else
+                set --erase _fisher_plugins
+            end
+
+            set --local total 0 0 (count $remove_plugins)
+
+            test "$total" != "0 0 0" && echo (string join ", " (
+                test $total[1] = 0 || echo "Installed $total[1]") (
+                test $total[2] = 0 || echo "Updated $total[2]") (
+                test $total[3] = 0 || echo "Removed $total[3]")
+            ) plugin/s
+        case install update 
+            isatty || read --local --null --array stdin && set --append argv $stdin
 
             set -l options f/force 
             argparse -i $options -- $argv[2..-1]
