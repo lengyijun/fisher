@@ -4,6 +4,38 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
     set --local fish_plugins $__fish_config_dir/fish_plugins
 
     switch "$cmd"
+        case install remove uninstall
+            test -e $fish_plugins && set --local file_plugins (string match --regex -- '^[^\s]+$' <$fish_plugins | string replace -- \~ ~)
+            set --local list_a
+            set --local list_b
+
+            for plugin in $file_plugins
+                contains -- "$plugin" $_fisher_plugins || set --append list_a $plugin
+            end
+
+            for plugin in $_fisher_plugins
+                contains -- "$plugin" $file_plugins || set --append list_b $plugin
+            end
+
+            if set --query list_a[1]
+                echo "Following plugins in $fish_plugins but not in \$_fisher_plugins"
+                echo $list_a
+                echo "Suggest `fisher update` or `fisher install $list_a` first"
+                echo "Or edit $fish_plugins manually"
+            end
+
+            if set --query list_b[1]
+                echo "Following plugins in \$_fisher_plugins but not in $fish_plugins"
+                echo $list_b
+                echo "Suggest `fisher update` or `fisher install $list_b` first"
+            end
+
+            if set --query list_a[1] || set --query list_b[1]
+                return 1
+            end
+    end
+
+    switch "$cmd"
         case -v --version
             echo "fisher, version $fisher_version"
         case "" -h --help
@@ -249,3 +281,4 @@ if ! set --query _fisher_upgraded_to_4_4
         functions --erase _fisher_fish_postexec
     end
 end
+
