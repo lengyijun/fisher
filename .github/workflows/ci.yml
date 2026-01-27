@@ -20,3 +20,191 @@ jobs:
           fisher install $GITHUB_WORKSPACE jorgebucaran/fishtape
           fishtape tests/*.fish
         shell: fish {0}
+
+  remove--overwrite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "lengyijun/fc-fish"
+        shell: fish {0}
+
+      - name: fisher remove can't use option --overwrite
+        run: |
+          ! fish -c "fisher remove --overwrite lengyijun/fc-fish" 
+
+  uninstall--overwrite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "lengyijun/fc-fish"
+        shell: fish {0}
+
+      - name: fisher uninstall can't use option --overwrite
+        run: |
+          ! fish -c "fisher uninstall --overwrite lengyijun/fc-fish" 
+
+  fish-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+        shell: fish {0}
+
+      - name: fisher update never truncate $HOME/.config/fish/fish_plugins
+        run: |
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+          fish -c "fisher update"
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+
+  fix-issue-2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "paldepind/projectdo"
+        shell: fish {0}
+
+      - name: rm fish_variables
+        run: |
+          rm -f $HOME/.config/fish/fish_variables
+
+      - name: fisher update must fail, but never truncate fish_plugins
+        run: |
+          ! fish -c "fisher update" 
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+
+  # https://github.com/jorgebucaran/fisher/pull/824
+  fix-issue-824:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Preserve fish_plugins on bootstrap
+        run: |
+          mkdir -p $HOME/.config/fish
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher update
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+  fix-issue-824-update--overwrite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+        shell: fish {0}
+
+      - name: Preserve fish_plugins on bootstrap
+        run: |
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+          rm -f $HOME/.config/fish/fish_variables
+          fish -c "fisher update --overwrite"
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+
+  fix-issue-824-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+        shell: fish {0}
+
+      - name: Preserve fish_plugins on bootstrap
+        run: |
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+          rm -f $HOME/.config/fish/fish_variables
+          fish -c "fisher update" || true
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+
+  remove_abort_if_mismatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "lengyijun/fc-fish"
+        shell: fish {0}
+
+      - name: Preserve fish_plugins on bootstrap
+        run: |
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+          fish -c "fisher remove lengyijun/fc-fish" || true
+          grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
+          grep -q "lengyijun/fc-fish" $HOME/.config/fish/fish_plugins
