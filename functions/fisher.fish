@@ -214,6 +214,8 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 command mkdir -p $fisher_path/{functions,themes,conf.d,completions}
             end
 
+            set --local conflict_plugins
+
             for plugin in $update_plugins $install_plugins
                 set --local source $source_plugins[(contains --index -- "$plugin" $fetch_plugins)]
                 set --local files $source/{functions,themes,conf.d,completions}/*
@@ -235,6 +237,7 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                             end
                         else
                             echo -s "fisher: Cannot install \"$plugin\": please remove or move conflicting files first:" \n"        "$conflict_files >&2
+                            set --append conflict_plugins $plugin
                             continue
                         end
                     end
@@ -262,6 +265,11 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             end
 
             command rm -rf $source_plugins
+
+            if set --query conflict_plugins[1]
+                echo "Try `fisher install --overwrite $conflict_plugins` to overwrite conflict files"
+                return 1
+            end
 
             if set --query _fisher_plugins[1]
                 set --local commit_plugins
