@@ -208,3 +208,118 @@ jobs:
           fish -c "fisher remove lengyijun/fc-fish" || true
           grep -q "paldepind/projectdo" $HOME/.config/fish/fish_plugins
           grep -q "lengyijun/fc-fish" $HOME/.config/fish/fish_plugins
+
+  issue-3-remove:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "lengyijun/fc-fish"
+          sed -i '2d' $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+      - name: fc-fish already deleted in config, so fisher remove should ok
+        run: |
+          fish -c "fisher remove lengyijun/fc-fish" 
+
+  issue-3-remove-fail:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install "lengyijun/fc-fish"
+          fisher install "paldepind/projectdo" 
+          sed -i '3d' $HOME/.config/fish/fish_plugins
+          sed -i '2d' $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+      - name: 2 plugines deleted in config, so fisher remove should fail
+        run: |
+          ! fish -c "fisher remove lengyijun/fc-fish" 
+
+  issue-3-install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          echo "lengyijun/fc-fish" >> $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+      - name: fc-fish already included in config, so fisher install should ok
+        run: |
+          fish -c "fisher install lengyijun/fc-fish" 
+
+  issue-3-install--overwrite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          echo "lengyijun/fc-fish" >> $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+      - name: fc-fish already included in config, so fisher install should ok
+        run: |
+          fish -c "fisher install --overwrite lengyijun/fc-fish" 
+
+  issue-3-install-fail:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          echo "lengyijun/fc-fish" >> $HOME/.config/fish/fish_plugins
+          echo "paldepind/projectdo" >> $HOME/.config/fish/fish_plugins
+        shell: fish {0}
+
+      - name: projectdo not in config, fisher install should fail
+        run: |
+          ! fish -c "fisher install lengyijun/fc-fish" 

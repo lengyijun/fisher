@@ -9,33 +9,88 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 # deal with in https://github.com/jorgebucaran/fisher/pull/824
             else
                 test -e $fish_plugins && set --local file_plugins (string match --regex -- '^[^\s]+$' <$fish_plugins | string replace -- \~ ~)
-                set --local list_a
-                set --local list_b
+
+                # calculate dry-run result
+                # compare dry-run result with file_plugins
+                # if equal, no more check, install/uninstall directly
+
+                # dry-run result
+                set --local plugins_after_cmd
+
+                switch "$cmd"
+                    case remove uninstall
+                        set --local plugins_to_delete
+                        for plugin in $argv[2..-1]
+                            if test "$plugin" != "--overwrite"
+                                set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+                                contains -- "$plugin" $plugins_to_delete || set --append plugins_to_delete $plugin
+                            end
+                        end
+                        for plugin in $_fisher_plugins
+                            contains -- "$plugin" $plugins_to_delete || set --append plugins_after_cmd $plugin
+                        end
+                    case install
+                        for plugin in $_fisher_plugins
+                            set --append plugins_after_cmd $plugin
+                        end
+                        for plugin in $argv[2..-1]
+                            if test "$plugin" != "--overwrite"
+                                set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+                                contains -- "$plugin" $plugins_after_cmd || set --append plugins_after_cmd $plugin
+                            end
+                        end
+                end
+
+                set --local list_c
+                set --local list_d
 
                 for plugin in $file_plugins
-                    contains -- "$plugin" $_fisher_plugins || set --append list_a $plugin
+                    contains -- "$plugin" $plugins_after_cmd || set --append list_c $plugin
+                end
+                for plugin in $plugins_after_cmd
+                    contains -- "$plugin" $file_plugins || set --append list_d $plugin
                 end
 
-                for plugin in $_fisher_plugins
-                    contains -- "$plugin" $file_plugins || set --append list_b $plugin
-                end
+                if set --query list_c[1] || set --query list_d[1]
+                    set --local list_a
+                    set --local list_b
 
-                if set --query list_a[1]
-                    echo "Following plugins in $fish_plugins but not in \$_fisher_plugins"
-                    echo $list_a
-                    echo "Suggest `fisher update` or `fisher install $list_a` first"
-                    echo "Or edit $fish_plugins manually"
-                end
+                    for plugin in $file_plugins
+                        contains -- "$plugin" $_fisher_plugins || set --append list_a $plugin
+                    end
 
-                if set --query list_b[1]
-                    echo "Following plugins in \$_fisher_plugins but not in $fish_plugins"
-                    echo $list_b
-                    echo "Try `fisher update` to remove $list_b"
-                    echo "or `fisher install $list_b` to sync fisher state"
-                end
+                    for plugin in $_fisher_plugins
+                        contains -- "$plugin" $file_plugins || set --append list_b $plugin
+                    end
 
-                if set --query list_a[1] || set --query list_b[1]
-                    return 1
+                    if set --query list_a[1] && set --query list_b[1]
+                        echo "Following plugins in $fish_plugins but not in \$_fisher_plugins"
+                        echo $list_a
+                        echo
+                        echo "Following plugins in \$_fisher_plugins but not in $fish_plugins"
+                        echo $list_b
+                        echo
+                        echo "Try `fisher update` to remove $list_b and install $list_a"
+                        return 1
+                    end
+
+                    if set --query list_a[1]
+                        echo "Following plugins in $fish_plugins but not in \$_fisher_plugins"
+                        echo $list_a
+                        echo
+                        echo "Suggest `fisher update` or `fisher install $list_a` first"
+                        echo "Or edit $fish_plugins manually"
+                        return 1
+                    end
+
+                    if set --query list_b[1]
+                        echo "Following plugins in \$_fisher_plugins but not in $fish_plugins"
+                        echo $list_b
+                        echo
+                        echo "Try `fisher update` to remove $list_b"
+                        echo "or `fisher install $list_b` to sync fisher state"
+                        return 1
+                    end
                 end
             end
     end
