@@ -4,5 +4,6 @@ complete --command fisher --exclusive --long overwrite --description "Overwrite 
 complete --command fisher --exclusive --condition __fish_use_subcommand --arguments install --description "Install plugins"
 complete --command fisher --exclusive --condition __fish_use_subcommand --arguments update --description "Update installed plugins"
 complete --command fisher --exclusive --condition __fish_use_subcommand --arguments remove --description "Remove installed plugins"
+complete --command fisher --exclusive --condition __fish_use_subcommand --arguments ls-untracked-files --description "List files not tracked by fisher"
 complete --command fisher --exclusive --condition __fish_use_subcommand --arguments list --description "List installed plugins matching regex"
 complete --command fisher --exclusive --condition "__fish_seen_subcommand_from update remove list" --arguments "(fisher list)"
