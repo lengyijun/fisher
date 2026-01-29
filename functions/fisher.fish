@@ -98,6 +98,8 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
     switch "$cmd"
         case -v --version
             echo "fisher, version $fisher_version"
+            echo
+            echo "https://github.com/lengyijun/fisher"
         case "" -h --help
             echo "Usage: fisher install   <plugins...>  Install plugins"
             echo "       fisher remove    <plugins...>  Remove installed plugins" 
@@ -112,6 +114,8 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             echo "       -h, --help     Print this help message"
             echo "Variables:"
             echo "       \$fisher_path  Plugin installation path. Default: $__fish_config_dir" | string replace --regex -- $HOME \~
+            echo
+            echo "https://github.com/lengyijun/fisher"
         case ls list
             # If no plugin args, echo the installed plugins list
             if not set --query argv[2]
