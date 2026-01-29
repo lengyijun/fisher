@@ -11,8 +11,8 @@ set --local BASENAME --regex -- '[^/]+$'
 ) = "fisher fishtape ponyo"
 
 @test "fisher list regex" (
-    fisher list ponyo | string match $BASENAME
-) = ponyo
+    fisher list tests/ponyo | string join " "
+) = "~/.config/fish/functions/ponyo.fish ~/.config/fish/conf.d/ponyo.fish"
 
 @test "pyon pyon" (fish --command ponyo | string join " ") = "pyon pyon ponyo"
 
