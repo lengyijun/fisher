@@ -104,14 +104,26 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             echo "       fisher uninstall <plugins...>  Remove installed plugins (alias)" 
             echo "       fisher update    <plugins...>  Update installed plugins"
             echo "       fisher update                  Update all installed plugins"
-            echo "       fisher list    [<regex>]       List installed plugins matching regex"
+            echo "       fisher list                    List installed plugins"
+            echo "       fisher list      <plugins...>  List installed files from plugins"
             echo "Options:"
             echo "       -v, --version  Print version"
             echo "       -h, --help     Print this help message"
             echo "Variables:"
             echo "       \$fisher_path  Plugin installation path. Default: $__fish_config_dir" | string replace --regex -- $HOME \~
         case ls list
-            string match --entire --regex -- "$argv[2]" $_fisher_plugins
+            # If no plugin args, echo the installed plugins list
+            if not set --query argv[2]
+                printf "%s\n" $_fisher_plugins
+            else
+                for plugin in $argv[2..-1]
+                    set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+                    set --local plugin_files_var _fisher_(string escape --style=var -- $plugin)_files
+                    for file in $$plugin_files_var
+                        echo $file
+                    end
+                end
+            end
         case install update remove uninstall
             isatty || read --local --null --array stdin && set --append argv $stdin
 
