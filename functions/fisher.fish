@@ -106,6 +106,7 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
             echo "       fisher update                  Update all installed plugins"
             echo "       fisher list                    List installed plugins"
             echo "       fisher list      <plugins...>  List installed files from plugins"
+            echo "       fisher ls-untracked-files      List files not tracked by fisher"
             echo "Options:"
             echo "       -v, --version  Print version"
             echo "       -h, --help     Print this help message"
@@ -123,6 +124,16 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                         echo $file
                     end
                 end
+            end
+        case ls-untracked-files
+            set --local tracked_files 
+            for file in (fisher list (fisher list))
+                set --local x (string replace -- \~ ~ $file)
+                set --append tracked_files (realpath $x)
+            end
+            set --local user_files $fisher_path/{functions,themes,conf.d,completions}/*
+            for file in $user_files
+                contains -- "$file" $tracked_files || echo $file
             end
         case install update remove uninstall
             isatty || read --local --null --array stdin && set --append argv $stdin
