@@ -205,6 +205,39 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                 end
             end
 
+            if test "$cmd" = update || set -q _flag_overwrite
+                if set --query install_plugins[1] 
+                    echo "install " (count $install_plugins) " plugins"
+                    echo $install_plugins
+                    echo
+                end
+                if set --query update_plugins[1] 
+                    echo "update " (count $update_plugins) " plugins"
+                    echo $update_plugins
+                    echo
+                end
+                if set --query remove_plugins[1] 
+                    echo "remove " (count $remove_plugins) " plugins"
+                    echo $remove_plugins
+                    echo
+                end
+                read -P "Continue? (y/n) " -l answer
+                switch (string lower $answer)
+                    case y yes
+                        echo "You chose yes"
+                    case n no
+                        echo "You chose no"
+                        echo "Nothing change"
+                        echo "Exiting"
+                        return 0
+                    case '*'
+                        echo "Invalid answer"
+                        echo "Nothing change"
+                        echo "Exiting"
+                        return 0
+                end
+            end
+
             set --local pid_list
             set --local source_plugins
             set --local fetch_plugins $update_plugins $install_plugins
