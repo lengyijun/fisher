@@ -129,6 +129,52 @@ function fisher --argument-names cmd --description "A plugin manager for Fish"
                     end
                 end
             end
+        case ignore
+            # Remove plugin entries from the fisher plugin list (keep files on disk)
+            if not set --query argv[2]
+                echo "fisher: Not enough arguments for command: \"ignore\"" >&2 && return 1
+            end
+
+            test -e $fish_plugins && set --local file_plugins (string match --regex -- '^[^\s]+$' <$fish_plugins | string replace -- \~ ~)
+
+            for plugin in $argv[2..-1]
+                set plugin (test -e "$plugin" && realpath $plugin || string lower -- $plugin)
+
+                # remove from universal list if present
+                if set --local idx (contains --index -- "$plugin" $_fisher_plugins)
+                    set --erase _fisher_plugins[$idx]
+                else
+                    # try case-insensitive match against existing entries
+                    for p in $_fisher_plugins
+                        if test (string lower -- $p) = (string lower -- $plugin)
+                            set --erase _fisher_plugins[(contains --index -- "$p" $_fisher_plugins)]
+                            break
+                        end
+                    end
+                end
+
+                # remove from fish_plugins file if present
+                if set --query file_plugins[1]
+                    set --local new_file_plugins
+                    for fp in $file_plugins
+                        # expand leading ~ to $HOME before testing/examining the path so
+                        # comparisons against realpath() work correctly, but keep the
+                        # original fp when re-writing the file so we continue storing ~
+                        set fp_expanded (string replace --regex -- '^\\~' $HOME $fp)
+                        set fp_norm (test -e "$fp_expanded" && realpath $fp_expanded || string lower -- $fp)
+                        if test "$fp_norm" != "$plugin"
+                            set --append new_file_plugins $fp
+                        end
+                    end
+
+                    if set --query new_file_plugins[1]
+                        string replace --regex -- $HOME \~ $new_file_plugins >$fish_plugins
+                    else
+                        command rm -f $fish_plugins
+                    end
+                end
+            end
+            echo "Updated $fish_plugins"
         case ls-untracked-files
             set --local tracked_files 
             for file in (fisher list (fisher list))

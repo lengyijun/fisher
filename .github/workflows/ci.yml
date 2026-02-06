@@ -347,3 +347,57 @@ jobs:
       - name: projectdo not in config, fisher install should fail
         run: |
           ! fish -c "fisher install lengyijun/fc-fish" 
+
+  fisher-ignore-a:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+          cd $HOME
+          git clone https://github.com/lengyijun/fc-fish --depth=1
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install ~/fc-fish
+        shell: fish {0}
+
+      - name: projectdo not in config, fisher install should fail
+        run: |
+          fisher ignore ~/fc-fish
+          fisher list | ! grep -q fc-fish
+          ! grep -q fc-fish $HOME/.config/fish/fish_plugins 
+        shell: fish {0}
+
+  fisher-ignore-b:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+          cd $HOME
+          git clone https://github.com/lengyijun/fc-fish --depth=1
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+          fisher install ~/fc-fish
+        shell: fish {0}
+
+      - name: projectdo not in config, fisher install should fail
+        run: |
+          fisher ignore $HOME/fc-fish
+          fisher list | ! grep -q fc-fish
+          ! grep -q fc-fish $HOME/.config/fish/fish_plugins 
+        shell: fish {0}
