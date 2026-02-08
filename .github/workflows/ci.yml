@@ -301,6 +301,30 @@ jobs:
         run: |
           fish -c "fisher install --overwrite lengyijun/fc-fish" 
 
+  install--overwrite-jorgebucaran-fisher:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher and plugins
+        run: |
+          source $GITHUB_WORKSPACE/functions/fisher.fish
+          fisher install $GITHUB_WORKSPACE 
+        shell: fish {0}
+
+      - name: Install --overwrite
+        run: |
+          fisher install --overwrite jorgebucaran/fisher || true
+          grep -q "jorgebucaran/fisher" $HOME/.config/fish/fish_plugins 
+        shell: fish {0}
+
+
   issue-3-install-fail:
     runs-on: ubuntu-latest
 
