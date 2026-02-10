@@ -401,3 +401,51 @@ jobs:
           fisher list | ! grep -q fc-fish
           ! grep -q fc-fish $HOME/.config/fish/fish_plugins 
         shell: fish {0}
+
+  installation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install fisher
+        run: |
+          fish -c (cat $GITHUB_WORKSPACE/README.md | grep curl)
+        shell: fish {0}
+
+      - name: Test fisher install
+        run: |
+          fisher install lengyijun/fc-fish
+        shell: fish {0}
+
+  installation-b:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Fish
+        run: |
+          sudo apt-add-repository -yn ppa:fish-shell/release-3
+          sudo apt-get update
+          sudo apt-get install -y fish
+
+      - name: Install jorgebucaran/fisher
+        run: |
+          curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+        shell: fish {0}
+
+      - name: Install lengyijun/fisher
+        run: |
+          fish -c (cat $GITHUB_WORKSPACE/README.md | grep curl)
+        shell: fish {0}
+
+      - name: Test fisher install
+        run: |
+          fisher install lengyijun/fc-fish
+          fisher --version | grep -q lengyijun
+        shell: fish {0}
